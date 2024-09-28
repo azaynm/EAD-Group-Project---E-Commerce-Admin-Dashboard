@@ -48,7 +48,7 @@ function OrderManagement() {
         }
     };
 
-    // Update order status (before dispatch)
+    // Update order status
     const handleUpdateOrderStatus = async (orderId, newStatus) => {
         try {
             const response = await axios.put(`https://localhost:7173/api/orders/${orderId}/status`, {
@@ -60,7 +60,7 @@ function OrderManagement() {
         }
     };
 
-    // Cancel an order (before dispatch)
+    // Cancel an order
     const handleCancelOrder = async (orderId) => {
         try {
             await axios.delete(`https://localhost:7173/api/orders/${orderId}`);
