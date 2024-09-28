@@ -3,28 +3,26 @@ import React, { useEffect, useState } from 'react';
 
 function VendorManagement() {
     const [vendors, setVendors] = useState([]);
+    const [newVendor, setNewVendor] = useState({ name: '', ranking: 0 });
+    const [newComments, setNewComments] = useState({});
 
+    // Fetch vendors
     const fetchVendors = async () => {
         try {
-            const response = await axios.get(`http://localhost:5096/api/vendor`);
-            setVendors(response.data); // Update the state with fetched vendors
+            const response = await axios.get(`https://localhost:7173/api/vendor`);
+            setVendors(response.data);
         } catch (error) {
             console.log(error);
         }
     };
 
-    useEffect(() => {
-        fetchVendors();
-    }, []);
-
-    const [newVendor, setNewVendor] = useState({ name: '', ranking: 0 });
-    const [newComments, setNewComments] = useState({});
+    
 
     // Add new vendor
     const handleAddVendor = async () => {
         try {
-            const response = await axios.post(`http://localhost:5096/api/vendor`, newVendor);
-            setVendors([...vendors, response.data]); // Update the state with the new vendor from API
+            const response = await axios.post(`https://localhost:7173/api/vendor`, newVendor);
+            setVendors([...vendors, response.data]);
             setNewVendor({ name: '', ranking: 0 });
         } catch (error) {
             console.log("Error adding vendor:", error);
@@ -33,25 +31,38 @@ function VendorManagement() {
 
     // Add a comment for a vendor
     const handleAddComment = async (vendorId) => {
-        const comment = newComments[vendorId]; // Get the new comment for the specific vendor
+        const { commentText, ranking } = newComments[vendorId]; // Destructure the commentText and ranking
 
         try {
-            await axios.put(`http://localhost:5096/api/vendor/${vendorId}/comment`, { comment });
+            await axios.put(`https://localhost:7173/api/vendor/${vendorId}/comment`, { commentText, ranking });
             const updatedVendors = vendors.map((vendor) =>
                 vendor.id === vendorId
-                    ? { ...vendor, comments: [...vendor.comments, comment] }
+                    ? { ...vendor, comments: [...vendor.comments, { commentText, ranking }] }
                     : vendor
             );
             setVendors(updatedVendors);
-            setNewComments({ ...newComments, [vendorId]: '' }); // Clear the comment input for that vendor
+            setNewComments({ ...newComments, [vendorId]: { commentText: '', ranking: 0 } }); // Clear the comment input
         } catch (error) {
             console.log("Error adding comment:", error);
         }
     };
 
-    const handleCommentChange = (vendorId, comment) => {
-        setNewComments({ ...newComments, [vendorId]: comment });
+
+
+    // Handle comment input change
+    const handleCommentChange = (vendorId, key, value) => {
+        setNewComments({
+            ...newComments,
+            [vendorId]: {
+                ...newComments[vendorId],
+                [key]: value
+            }
+        });
     };
+
+    useEffect(() => {
+        fetchVendors();
+    }, [handleAddComment]);
 
     return (
         <div>
@@ -65,13 +76,6 @@ function VendorManagement() {
                     value={newVendor.name}
                     placeholder="Vendor Name"
                     onChange={(e) => setNewVendor({ ...newVendor, name: e.target.value })}
-                    className="form-control mb-2"
-                />
-                <input
-                    type="number"
-                    value={newVendor.ranking}
-                    placeholder="Vendor Ranking"
-                    onChange={(e) => setNewVendor({ ...newVendor, ranking: Number(e.target.value) })}
                     className="form-control mb-2"
                 />
                 <button className="btn btn-primary" onClick={handleAddVendor}>
@@ -100,16 +104,28 @@ function VendorManagement() {
                             <td>
                                 <ul>
                                     {vendor.comments.map((comment, index) => (
-                                        <li key={index}>{comment}</li>
+                                        <li key={index}>
+                                            {comment.commentText} (Rating: {comment.ranking})
+                                        </li>
                                     ))}
                                 </ul>
                             </td>
                             <td>
                                 <input
                                     type="text"
-                                    value={newComments[vendor.id] || ''}
+                                    value={newComments[vendor.id]?.commentText || ''}
                                     placeholder="Add Comment"
-                                    onChange={(e) => handleCommentChange(vendor.id, e.target.value)}
+                                    onChange={(e) => handleCommentChange(vendor.id, 'commentText', e.target.value)}
+                                    className="form-control mb-2"
+                                />
+                                <input
+                                    type="number"
+                                    value={newComments[vendor.id]?.ranking || 0}
+                                    min="0"
+                                    max="5"
+                                    step="0.1"
+                                    placeholder="Ranking (0-5)"
+                                    onChange={(e) => handleCommentChange(vendor.id, 'ranking', parseFloat(e.target.value))}
                                     className="form-control mb-2"
                                 />
                                 <button

@@ -44,3 +44,4 @@ D:\Campus\4th year\EAD\ecommerce-backend\obj\Debug\net8.0\refint\ecommerce-backe
 D:\Campus\4th year\EAD\ecommerce-backend\obj\Debug\net8.0\ecommerce-backend.pdb
 D:\Campus\4th year\EAD\ecommerce-backend\obj\Debug\net8.0\ecommerce-backend.genruntimeconfig.cache
 D:\Campus\4th year\EAD\ecommerce-backend\obj\Debug\net8.0\ref\ecommerce-backend.dll
+D:\Campus\4th year\EAD\ecommerce-backend\obj\Debug\net8.0\ecommerce-backend.sourcelink.json

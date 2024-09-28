@@ -34,12 +34,6 @@ public class VendorService
         return await _vendors.FindOneAndUpdateAsync(v => v.Id == vendorId, update);
     }
 
-    public async Task<bool> AddCommentAsync(string vendorId, string comment)
-    {
-        var update = Builders<Vendor>.Update.Push(v => v.Comments, comment);
-        var result = await _vendors.UpdateOneAsync(v => v.Id == vendorId, update);
-        return result.ModifiedCount > 0;
-    }
 
     public async Task<Vendor> UpdateVendorAsync(string id, Vendor updatedVendor)
     {
@@ -56,6 +50,21 @@ public class VendorService
         });
 
         return result;
+    }
+
+   // Add a comment with ranking to a vendor
+    public async Task<Vendor?> AddCommentAsync(string vendorId, Comment comment)
+    {
+        var filter = Builders<Vendor>.Filter.Eq(v => v.Id, vendorId);
+        var update = Builders<Vendor>.Update.Push(v => v.Comments, comment);
+
+        // Return the updated document after the update
+        var options = new FindOneAndUpdateOptions<Vendor>
+        {
+            ReturnDocument = ReturnDocument.After
+        };
+
+        return await _vendors.FindOneAndUpdateAsync(filter, update, options);
     }
 
     

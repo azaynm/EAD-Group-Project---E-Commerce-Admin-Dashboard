@@ -3,8 +3,6 @@ using ecommerce_backend.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
-
-
 [Route("api/[controller]")]
 [ApiController]
 public class VendorController : ControllerBase
@@ -15,7 +13,6 @@ public class VendorController : ControllerBase
     {
         _vendorService = vendorService;
     }
-
 
     // GET: api/vendor
     [HttpGet]
@@ -43,35 +40,53 @@ public class VendorController : ControllerBase
         return Ok(updatedVendor);
     }
 
-    // PUT: api/vendor/{id}/comment
-    [HttpPut("{id}/comment")]
-    public async Task<ActionResult> AddComment(string id, [FromBody] string comment)
-    {
-        var result = await _vendorService.AddCommentAsync(id, comment);
-        if (!result) return NotFound("Vendor not found");
-
-        return NoContent();
-    }
-
     // PUT: api/vendor/{id}
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateVendor(string id, [FromBody] Vendor vendor)
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateVendor(string id, [FromBody] Vendor vendor)
+    {
+        if (vendor == null || id != vendor.Id)
         {
-            if (vendor == null || id != vendor.Id)
-            {
-                return BadRequest("Invalid vendor data.");
-            }
-
-            var updatedVendor = await _vendorService.UpdateVendorAsync(id, vendor);
-            if (updatedVendor == null)
-            {
-                return NotFound("Vendor not found.");
-            }
-
-            return Ok(updatedVendor); // Return the updated vendor data
+            return BadRequest("Invalid vendor data.");
         }
 
-       
+        var updatedVendor = await _vendorService.UpdateVendorAsync(id, vendor);
+        if (updatedVendor == null)
+        {
+            return NotFound("Vendor not found.");
+        }
 
-       
+        return Ok(updatedVendor); // Return the updated vendor data
+    }
+
+    // PUT: api/vendor/{id}/comment
+    [HttpPut("{id}/comment")]
+    public async Task<IActionResult> AddComment(string id, [FromBody] AddCommentDto commentDto)
+    {
+        if (string.IsNullOrWhiteSpace(commentDto.CommentText))
+        {
+            return BadRequest("Comment cannot be empty.");
+        }
+
+        var comment = new Comment
+        {
+            CommentText = commentDto.CommentText,
+            Ranking = commentDto.Ranking
+        };
+
+        var updatedVendor = await _vendorService.AddCommentAsync(id, comment);
+
+        if (updatedVendor == null)
+        {
+            return NotFound($"Vendor with ID {id} not found.");
+        }
+
+        return Ok(updatedVendor);
+    }
+
+
+    public class AddCommentDto
+{
+    public string CommentText { get; set; } = string.Empty;
+    public double Ranking { get; set; } = 0.0;
+}
 }
