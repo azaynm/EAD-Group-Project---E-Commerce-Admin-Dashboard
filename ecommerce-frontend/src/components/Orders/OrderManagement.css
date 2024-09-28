@@ -1,0 +1,19 @@
+.container {
+    max-width: 900px;
+}
+
+.card-title {
+    font-weight: bold;
+}
+
+.table {
+    margin-bottom: 20px;
+}
+
+.table-dark th {
+    text-align: center;
+}
+
+.btn {
+    margin-top: 5px;
+}
