@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import AdminDashboard from '../Admin/AdminDashboard';
 import VendorDashboard from '../Vendor/VendorDashboard';
+import { logout } from '../../redux/Admin/actions/adminAction';
 
 
 const Dashboard = () => {
@@ -45,6 +46,12 @@ const Dashboard = () => {
     useEffect(()=>{
         console.log("role in dashbaord", role)
     },[])
+
+    const handleLogout = ()=>{
+        dispatch(logout());
+        navigate("/login")
+    }
+
     const renderContent = () => {
         switch (contentIndex) {
           case 0:
@@ -52,7 +59,7 @@ const Dashboard = () => {
           case 1:
             return role === "Vendor" ? <VendorDashboard /> : <div>Access Denied</div>;
           default:
-            return null;
+            handleLogout();
         }
       };
 

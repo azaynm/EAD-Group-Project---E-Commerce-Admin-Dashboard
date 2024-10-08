@@ -53,7 +53,6 @@ const AddVendor = () => {
         <div style={{ padding: '20px' }}>
             <h2>Add a Vendor</h2>
             <form className="p-fluid" onSubmit={(e) => e.preventDefault()}>
-                {/* User Name */}
                 <div className="p-field">
                     <label htmlFor="userName">User Name</label>
                     <InputText

@@ -13,6 +13,8 @@ import { fetchOrders, fetchOrdersAdmin, updateOrderStatus } from '../../redux/Ve
 function OrderTrackingAdmin() {
     const dispatch = useDispatch();
     const orders = useSelector((state) => state.vendor.orders) || [];
+    const loggedUser = useSelector((state) => state.authentication.loggedUser) || [];
+    console.log("logged user is ," ,loggedUser)
     const adminOrders = useSelector((state) => state.vendor.adminOrders) || [];
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [searchValue, setSearchValue] = useState('');
@@ -33,6 +35,8 @@ function OrderTrackingAdmin() {
         'Returned'
     ];
 
+    const [cancelReasons, setCancelReasons] = useState({});
+
     // State to store stock quantities
     const [stockQuantities, setStockQuantities] = useState({});
 
@@ -41,6 +45,10 @@ function OrderTrackingAdmin() {
     const [rows, setRows] = useState(4); // Number of products per page
     const [currentPage, setCurrentPage] = useState(1);
 
+    const getSearchEmail = () => {
+        return searchValue && searchValue.includes('@') ? `${searchValue.split('@')[0]}%40gmail.com` : '';
+    };
+    
     // Handle stock quantity change
     const handleStockChange = (productId, value) => {
         setStockQuantities((prevState) => ({
@@ -64,9 +72,10 @@ function OrderTrackingAdmin() {
                 // If confirmed, proceed with the cancellation
                 console.log("Removing this order id:", orderId);
                 dispatch(cancelOrderAdmin("Completed", orderId)); // Assuming this action handles cancellation
+                dispatch(fetchOrdersAdmin(getSearchEmail(), pageNumber, pageSize))
                 Swal.fire('Completed!', 'Order has been marked as completed.', 'success');
                 setSelectedCancelOrderId(null); // Hide the input field after confirming cancellation
-                dispatch(fetchOrdersAdmin("customer%40gmail.com", pageNumber, pageSize))
+                
             }
         });
     };
@@ -75,19 +84,26 @@ function OrderTrackingAdmin() {
         setSelectedCancelOrderId(orderId); // Set the current orderId to display the cancellation input for this order
     };
 
+    const handleReasonChange = (orderId, value) => {
+        setCancelReasons((prevState) => ({
+            ...prevState,
+            [orderId]: value, // Store the cancellation reason for the specific order
+        }));
+    };
+
     const onPageChange = (e) => {
         const page = e.page + 1; // Calculate the page (e.page is zero-based)
         setCurrentPage(page);
         setFirst(e.first);
         setRows(e.rows);
-        dispatch(fetchOrdersAdmin("customer%40gmail.com", page, e.rows)); // Fetch orders with the new page and rows
+        dispatch(fetchOrdersAdmin(getSearchEmail(), page, e.rows)); // Fetch orders with the new page and rows
     };
 
 
     // Fetch orders when component mounts or when status, pageNumber, or pageSize changes
     useEffect(() => {
         const fetchOrderData = async () => {
-            const response = await dispatch(fetchOrdersAdmin("customer%40gmail.com", pageNumber, pageSize));
+            const response = await dispatch(fetchOrdersAdmin(getSearchEmail(), pageNumber, pageSize));
             console.log("B", orders)
             setTotalRecords(response || 0); // Update total records from API response
         };
@@ -97,6 +113,13 @@ function OrderTrackingAdmin() {
 
 
     const handleConfirmCancellation = (orderId) => {
+        const reason = cancelReasons[orderId];
+
+        if (!reason) {
+            Swal.fire('Error!', 'Please provide a reason for cancellation.', 'error');
+            return;
+        }
+
         Swal.fire({
             title: 'Are you sure?',
             text: "Do you really want to cancel this order?",
@@ -108,18 +131,19 @@ function OrderTrackingAdmin() {
             cancelButtonText: 'No, keep it'
         }).then((result) => {
             if (result.isConfirmed) {
-                // If confirmed, proceed with the cancellation
-                console.log("Removing this order id:", orderId);
-                dispatch(cancelOrderAdmin("Cancelled", orderId)); // Assuming this action handles cancellation
+                // Proceed with the cancellation
+                console.log("Cancelling order id:", orderId, "Reason:", reason);
+                dispatch(cancelOrderAdmin("Cancelled", orderId, reason)); // Assuming this action handles cancellation
+                dispatch(fetchOrdersAdmin(getSearchEmail(), pageNumber, pageSize)); // Fetch updated orders
                 Swal.fire('Cancelled!', 'Order has been cancelled.', 'success');
                 setSelectedCancelOrderId(null); // Hide the input field after confirming cancellation
-                dispatch(fetchOrdersAdmin("customer%40gmail.com", pageNumber, pageSize))
+              
             }
         });
     };
 
-    const handleSearch = () => {
-        dispatch(fetchOrdersAdmin("customer%40gmail.com", pageNumber, pageSize)); // Pass both status and search value
+    const handleSearch = (searchValue) => {
+        dispatch(fetchOrdersAdmin(getSearchEmail(), pageNumber, pageSize)); // Pass both status and search value
     };
 
     // Placeholder for updating order status
@@ -133,7 +157,7 @@ function OrderTrackingAdmin() {
 
     return (
         <div>
-            <h2>Order Management</h2>
+            <h2>Order Tracking</h2>
             <div style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
 
 
@@ -153,12 +177,12 @@ function OrderTrackingAdmin() {
 
                     {/* Search Field */}
                     <div className="p-field mt-3">
-                        <label htmlFor="search">Search Orders</label>
+                        <label htmlFor="search">Vendor Email</label>
                         <InputText
                             id="search"
                             value={searchValue}
                             onChange={(e) => setSearchValue(e.target.value)}
-                            placeholder="Search orders..."
+                            placeholder="Enter Vendor Email..."
                         />
                         <Button label="Search" onClick={handleSearch} className="p-button-primary mt-2" />
                     </div>
@@ -195,8 +219,24 @@ function OrderTrackingAdmin() {
                                         <Button
                                             label="Cancel"
                                             className="p-button-danger p-button-sm ml-2"
-                                            onClick={() => handleConfirmCancellation(order.orderId)}
+                                            onClick={() => handleCancel(order.orderId)}
                                         />
+                                        {/* Conditionally render input field and confirm button */}
+                                        {selectedCancelOrderId === order.orderId && (
+                                            <>
+                                                <InputText
+                                                    className="mt-2"
+                                                    value={cancelReasons[order.orderId] || ''}
+                                                    onChange={(e) => handleReasonChange(order.orderId, e.target.value)}
+                                                    placeholder="Enter cancellation reason"
+                                                />
+                                                <Button
+                                                    label="Confirm Cancellation"
+                                                    className="p-button-danger p-button-sm ml-2 mt-2"
+                                                    onClick={() => handleConfirmCancellation(order.orderId)}
+                                                />
+                                            </>
+                                        )}
 
 
                                     </td>

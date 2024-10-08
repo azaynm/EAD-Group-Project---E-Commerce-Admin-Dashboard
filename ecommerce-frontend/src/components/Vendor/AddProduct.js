@@ -404,9 +404,7 @@ const AddProduct = () => {
                                 <button className="btn btn-danger btn-sm me-2" onClick={() => handleDeleteProduct(product.productId)}>
                                     Delete
                                 </button>
-                                <button className="btn btn-primary btn-sm me-2" onClick={() => handleToggleStatus(product.productId, product.isVisible)}>
-                                    {product.isVisible ? "Deactivate" : "Activate"}
-                                </button>
+                               
                             </td>
                         </tr>
                     ))}

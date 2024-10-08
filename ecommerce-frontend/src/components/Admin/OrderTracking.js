@@ -111,7 +111,7 @@ function OrderTracking() {
 
     return (
         <div>
-            <h2>Order Management</h2>
+            <h2>Order Tracking</h2>
             <div style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
 
 

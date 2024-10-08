@@ -140,6 +140,7 @@ export const cancelOrderAdmin = (status, orderId) => {
           }
         }
       );
+      console.log("response", response)
 
     } catch (error) {
       console.error('Error cancelling order:', error);
@@ -285,6 +286,8 @@ export const notifyVendor = (vendorId, message) => {
   };
 };
 
+
+
 // Delete Product
 export const deleteProduct = (productId) => {
   return async (dispatch, getState) => {
@@ -299,6 +302,14 @@ export const deleteProduct = (productId) => {
     });
 
     dispatch({ type: 'DELETE_PRODUCT_SUCCESS', payload: productId });
+  };
+};
+
+export const logout = () => {
+  return async (dispatch, getState) => {
+    localStorage.removeItem("role");
+    localStorage.removeItem("token");
+    localStorage.removeItem("username");
   };
 };
 

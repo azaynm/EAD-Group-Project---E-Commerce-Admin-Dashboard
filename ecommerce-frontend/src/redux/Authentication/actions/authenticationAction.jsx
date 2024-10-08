@@ -30,6 +30,7 @@ export const loginUser = (userName, password) => {
       setRole(role)
       localStorage.setItem("role", role)
       console.log("Role in Redux state after dispatch:", getState().authentication.role);
+      dispatch(fetchUserDetails());
 
       Swal.fire({
         position: 'top-end',
@@ -66,4 +67,29 @@ export const redirectLogout = () => {
     localStorage.setItem("token", null);
     dispatch(setIsLogged(false))
   };
+};
+
+export const fetchUserDetails = () => {
+  return async (dispatch, getState) => {
+    const { backend } = getState().authentication;
+    const token = localStorage.getItem('token');
+
+    // Construct the base URL based on status
+    let url = `${backend}/user/details`;
+
+    try {
+
+      const response = await axios.get(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
+      });
+      dispatch(setLoggedUser(response.data))
+
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    return 0; // Return zero total count in case of error
+  }
+};
 };

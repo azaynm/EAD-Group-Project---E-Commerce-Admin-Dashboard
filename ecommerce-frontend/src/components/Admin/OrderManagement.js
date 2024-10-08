@@ -132,7 +132,7 @@ function OrderManagement() {
                                 <th>Name</th>
                                 <th>Price</th>
                                 <th>Quantity</th>
-                                <th>Size</th>
+                                {/* <th>Size</th> */}
                                 <th>Color</th>
                                 <th>Status</th>
                             </tr>
@@ -145,7 +145,7 @@ function OrderManagement() {
                                     <td>{order.productName}</td>
                                     <td>{order.price}</td>
                                     <td>{order.quantity}</td>
-                                    <td>{order.size}</td>
+                                    {/* <td>{order.size}</td> */}
                                     <td>{order.color}</td>
                                     <td>
 
