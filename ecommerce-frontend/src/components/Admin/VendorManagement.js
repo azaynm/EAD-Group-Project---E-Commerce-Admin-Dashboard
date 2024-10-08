@@ -1,144 +1,174 @@
-import axios from 'axios';
 import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { Paginator } from 'primereact/paginator';
+import { Dialog } from 'primereact/dialog';
+import { fetchVendors } from '../../redux/Vendor/actions/vendorAction';
+import { Button } from 'primereact/button';
+import { fetchComments } from '../../redux/Admin/actions/adminAction';
 
 function VendorManagement() {
-    const [vendors, setVendors] = useState([]);
-    const [newVendor, setNewVendor] = useState({ name: '', ranking: 0 });
-    const [newComments, setNewComments] = useState({});
 
-    // Fetch vendors
-    const fetchVendors = async () => {
-        try {
-            const response = await axios.get(`https://localhost:7173/api/vendor`);
-            setVendors(response.data);
-        } catch (error) {
-            console.log(error);
+    const [commentsData, setCommentsData] = useState([]);
+
+    const dispatch = useDispatch();
+    const vendors = useSelector((state) => state.vendor.vendors) || [];
+    console.log("Vendors on load", vendors.vendors);
+    const [pageNumber, setPageNumber] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalRecords, setTotalRecords] = useState(0);
+
+    // Paginator state
+    const [first, setFirst] = useState(0);
+    const [rows, setRows] = useState(10);
+
+    // Modal state
+    const [isModalVisible, setModalVisible] = useState(false);
+    const [selectedVendorEmail, setSelectedVendorEmail] = useState('');
+    const [vendorComments, setVendorComments] = useState([]); // State to store vendor comments
+
+    const onPageChange = (e) => {
+        const page = e.page + 1;
+        setPageNumber(page);
+        setFirst(e.first);
+        setRows(e.rows);
+    };
+
+    // Method to be called when the modal opens
+    const fetchVendorComments = async (email) => {
+        // Filter comments for the selected vendor email (in real app, you would fetch from API)
+        const filteredComments = commentsData
+        setVendorComments(filteredComments);
+        console.log("Fetched comments:", filteredComments);
+    };
+
+    // Trigger fetching comments when modal is opened
+    useEffect(() => {
+        if (isModalVisible) {
+            fetchVendorComments(selectedVendorEmail);
         }
-    };
-
-    
-
-    // Add new vendor
-    const handleAddVendor = async () => {
-        try {
-            const response = await axios.post(`https://localhost:7173/api/vendor`, newVendor);
-            setVendors([...vendors, response.data]);
-            setNewVendor({ name: '', ranking: 0 });
-        } catch (error) {
-            console.log("Error adding vendor:", error);
-        }
-    };
-
-    // Add a comment for a vendor
-    const handleAddComment = async (vendorId) => {
-        const { commentText, ranking } = newComments[vendorId]; // Destructure the commentText and ranking
-
-        try {
-            await axios.put(`https://localhost:7173/api/vendor/${vendorId}/comment`, { commentText, ranking });
-            const updatedVendors = vendors.map((vendor) =>
-                vendor.id === vendorId
-                    ? { ...vendor, comments: [...vendor.comments, { commentText, ranking }] }
-                    : vendor
-            );
-            setVendors(updatedVendors);
-            setNewComments({ ...newComments, [vendorId]: { commentText: '', ranking: 0 } }); // Clear the comment input
-        } catch (error) {
-            console.log("Error adding comment:", error);
-        }
-    };
-
-
-
-    // Handle comment input change
-    const handleCommentChange = (vendorId, key, value) => {
-        setNewComments({
-            ...newComments,
-            [vendorId]: {
-                ...newComments[vendorId],
-                [key]: value
-            }
-        });
-    };
+    }, [isModalVisible, selectedVendorEmail]);
 
     useEffect(() => {
-        fetchVendors();
-    }, [handleAddComment]);
+        const fetchVendorData = async () => {
+            const totalCount = await dispatch(fetchVendors("Vendor", pageNumber, pageSize));
+            setTotalRecords(totalCount || 0);
+        };
+        fetchVendorData();
+    }, [dispatch, pageNumber, pageSize]);
+
+    const handleViewComments = async (email) => {
+        setSelectedVendorEmail(email);
+        
+        try {
+            // Await the dispatch of fetchComments to get the actual response
+            const response = await dispatch(fetchComments(email));
+            console.log("Data", response);
+            setCommentsData(response);
+            
+            // Now that the data has been fetched, you can open the modal
+            setModalVisible(true);
+            console.log("Viewing comments for vendor:", email);
+        } catch (error) {
+            console.error('Error viewing comments for vendor:', error);
+        }
+    };
+
+    const hideModal = () => {
+        setModalVisible(false);
+    };
 
     return (
         <div>
-            <h2>Vendor Management</h2>
+            <div className='p-3 text-light' style={{ backgroundColor: '#1C4E80' }}>
+                <h5>Vendor Management</h5>
+            </div>
+            <div style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div className="card flex justify-content-center p-1 w-100">
+                    <h2 className="mt-5">Vendor List</h2>
 
-            {/* Add New Vendor */}
-            <div className="mb-4">
-                <h4>Add New Vendor</h4>
-                <input
-                    type="text"
-                    value={newVendor.name}
-                    placeholder="Vendor Name"
-                    onChange={(e) => setNewVendor({ ...newVendor, name: e.target.value })}
-                    className="form-control mb-2"
-                />
-                <button className="btn btn-primary" onClick={handleAddVendor}>
-                    Add Vendor
-                </button>
+                    {Array.isArray(vendors.vendors) && vendors.vendors.length > 0 ? (
+                        <table className="table">
+                            <thead>
+                                <tr>
+                                    <th>User Name</th>
+                                    <th>Email</th>
+                                    <th>Phone Number</th>
+                                    <th>Profile Image URL</th>
+                                    <th>Date of Birth</th>
+                                    <th>Gender</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {vendors.vendors.map((vendor) => (
+                                    <tr key={vendor.userName}>
+                                        <td>{vendor.userName}</td>
+                                        <td>{vendor.email}</td>
+                                        <td>{vendor.phoneNumber}</td>
+                                        <td>{vendor.profileImageUrl}</td>
+                                        <td>{vendor.dateOfBirth}</td>
+                                        <td>{vendor.gender}</td>
+                                        <td>
+                                            <Button
+                                                label="Comments/Rankings"
+                                                className="p-button-primary p-button-sm"
+                                                onClick={() => handleViewComments(vendor.email)}
+                                            />
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    ) : (
+                        <p>No vendors found.</p>
+                    )}
+
+                    <Paginator
+                        first={first}
+                        rows={rows}
+                        totalRecords={totalRecords}
+                        onPageChange={onPageChange}
+                    />
+                </div>
             </div>
 
-            {/* Vendor List */}
-            <h4>Current Vendors</h4>
-            <table className="table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Ranking</th>
-                        <th>Comments</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {vendors.map((vendor) => (
-                        <tr key={vendor.id}>
-                            <td>{vendor.id}</td>
-                            <td>{vendor.name}</td>
-                            <td>{vendor.ranking}</td>
-                            <td>
-                                <ul>
-                                    {vendor.comments.map((comment, index) => (
-                                        <li key={index}>
-                                            {comment.commentText} (Rating: {comment.ranking})
-                                        </li>
-                                    ))}
-                                </ul>
-                            </td>
-                            <td>
-                                <input
-                                    type="text"
-                                    value={newComments[vendor.id]?.commentText || ''}
-                                    placeholder="Add Comment"
-                                    onChange={(e) => handleCommentChange(vendor.id, 'commentText', e.target.value)}
-                                    className="form-control mb-2"
-                                />
-                                <input
-                                    type="number"
-                                    value={newComments[vendor.id]?.ranking || 0}
-                                    min="0"
-                                    max="5"
-                                    step="0.1"
-                                    placeholder="Ranking (0-5)"
-                                    onChange={(e) => handleCommentChange(vendor.id, 'ranking', parseFloat(e.target.value))}
-                                    className="form-control mb-2"
-                                />
-                                <button
-                                    className="btn btn-success btn-sm"
-                                    onClick={() => handleAddComment(vendor.id)}
-                                >
-                                    Add Comment
-                                </button>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+            {/* Modal to display comments/rankings */}
+            <Dialog
+                header="Vendor Comments/Rankings"
+                visible={isModalVisible}
+                style={{ width: '50vw' }}
+                modal
+                onHide={hideModal}
+            >
+                <p>Comments for vendor with email: {selectedVendorEmail}</p>
+
+                {/* Display comments in a table */}
+                {vendorComments.length > 0 ? (
+                    <table className="table">
+                        <thead>
+                            <tr>
+                                <th>Comment</th>
+                                <th>Rating</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {vendorComments.map((comment, index) => (
+                                <tr key={index}>
+                                    <td>{comment.comment}</td>
+                                    <td>{comment.rating}</td>
+                                    <td>{new Date(comment.createdAt).toLocaleDateString()}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                ) : (
+                    <p>No comments found for this vendor.</p>
+                )}
+
+                <Button label="Close" onClick={hideModal} />
+            </Dialog>
+
         </div>
     );
 }

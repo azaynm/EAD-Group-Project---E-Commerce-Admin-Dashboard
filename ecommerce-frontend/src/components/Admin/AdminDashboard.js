@@ -1,29 +1,38 @@
-import React from 'react';
-import { dummyUsers } from '../../data/dummyData';
+import React, { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { TabView, TabPanel } from 'primereact/tabview';
+import AddVendor from './AddVendor';
+import ActivateAccount from './ActivateAccount';
+import InventoryManagement from './InventoryManagement';
+import VendorManagement from './VendorManagement';
+import OrderTracking from './OrderTracking';
+import OrderTrackingAdmin from './OrderTrackingAdmin';
 
 function AdminDashboard() {
+
+
     return (
         <div>
-            <h1>Admin Dashboard</h1>
-            <h2>User Management</h2>
-            <table className="table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Role</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {dummyUsers.map(user => (
-                        <tr key={user.id}>
-                            <td>{user.id}</td>
-                            <td>{user.name}</td>
-                            <td>{user.role}</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+           
+            <TabView>
+                <TabPanel header="Activate Accounts">
+                    <ActivateAccount/>
+                </TabPanel>
+                
+                <TabPanel header="Add Vendor">
+                    <AddVendor/>
+                </TabPanel>
+
+                <TabPanel header="Inventory Management">
+                    <InventoryManagement />
+                </TabPanel>
+                <TabPanel header="Vendor Management">
+                    <VendorManagement />
+                </TabPanel>
+                <TabPanel header="Order Tracking">
+                    <OrderTrackingAdmin />
+                </TabPanel>
+            </TabView>
         </div>
     );
 }

@@ -1,0 +1,22 @@
+.site-layout .site-layout-background {
+    background: #fff;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.content {
+    padding: 24px;
+    min-height: 280px;
+    background: #fff;
+}
+
+.navbar {
+    background-color: #001529;
+    padding: 0 16px;
+}
+
+.menu {
+    margin-right: 16px;
+}

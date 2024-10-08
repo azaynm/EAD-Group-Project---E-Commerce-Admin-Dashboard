@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Swal from 'sweetalert2';
 
 function InventoryManagement() {
     const initialProducts = [
@@ -17,16 +18,35 @@ function InventoryManagement() {
 
     // Remove product stock
     const handleRemoveStock = (productId) => {
-        const product = products.find((p) => p.id === productId);
-        if (product.stock === 0) {
-            alert('Cannot remove stock for a product that is out of stock or in pending orders.');
-            return;
-        }
-        setProducts(
-            products.map((p) =>
-                p.id === productId ? { ...p, stock: p.stock - 1 } : p
-            )
-        );
+        Swal.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            const product = products.find((p) => p.id === productId);
+            if (product.stock === 0) {
+                alert('Cannot remove stock for a product that is out of stock or in pending orders.');
+                return;
+            }
+            setProducts(
+                products.map((p) =>
+                    p.id === productId ? { ...p, stock: p.stock - 1 } : p
+                )
+            );
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: "Deleted!",
+                    text: "Your file has been deleted.",
+                    icon: "success"
+                });
+            }
+        });
+
+
     };
 
     return (

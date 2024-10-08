@@ -8,111 +8,127 @@ import OrderManagement from './components/Orders/OrderManagement';
 import InventoryManagement from './components/Inventory/InventoryManagement';
 import VendorManagement from './components/Admin/VendorManagement';
 import Login from './components/Shared/Login';
+import { useDispatch, useSelector } from 'react-redux';
+import Dashboard from './components/Shared/Dashboard';
 
 function App() {
-    const [loggedInUser, setLoggedInUser] = useState(null); // To track the logged-in user
-
-    // Mock users for login
-    const mockUsers = [
-        { id: 1, name: 'Admin User', role: 'Administrator' },
-        { id: 2, name: 'Vendor User', role: 'Vendor' },
-        { id: 3, name: 'CSR User', role: 'Customer Service Representative' },
-    ];
-
-    // Function to handle login, simulate based on mock users
-    const handleLogin = (user) => {
-        setLoggedInUser(user);
-    };
-
-    // Function to handle logout
-    const handleLogout = () => {
-        setLoggedInUser(null);
-    };
-
+    const dispatch = useDispatch();
+    const isLogged = useSelector((state) => state.authentication.isLogged);
+    const loggedUser = useSelector((state) => state.authentication.loggedUser);
     return (
         <Router>
-            <Navbar loggedInUser={loggedInUser} onLogout={handleLogout} />
-            <div className="container mt-4">
-                <Routes>
-                    {/* Login Route */}
-                    <Route path="/" element={<Login users={mockUsers} onLogin={handleLogin} />} />
+            <Routes>
 
-                    {/* Admin Dashboard */}
-                    <Route
+                <Route
+                    path="/dashboard"
+                    element={
+                        <Dashboard />
+                    }
+                />
+
+                {/* <Route
+                        path="/login"
+                        element={isLogged ==true ? <Navigate to="/dashboard" /> : <Login />}
+                    /> */}
+
+                <Route
+                    path="/login"
+                    element={<Login />}
+                />
+
+                {/* Login Route */}
+                <Route path="/" element={<Login />} />
+
+                {/* Admin Dashboard */}
+                {/* <Route
                         path="/admin"
                         element={
-                            loggedInUser && loggedInUser.role === 'Administrator' ? (
+                            loggedUser && loggedUser.role === 'Admin' ? (
                                 <AdminDashboard />
                             ) : (
                                 <Navigate to="/" />
                             )
                         }
-                    />
+                    /> */}
 
-                    {/* Vendor Dashboard */}
-                    <Route
+
+                <Route
+                    path="/admin"
+                    element={
+                        <AdminDashboard />
+                    }
+                />
+
+                {/* Vendor Dashboard */}
+                {/* <Route
                         path="/vendor"
                         element={
-                            loggedInUser && loggedInUser.role === 'Vendor' ? (
+                            loggedUser && loggedUser.role === 'Vendor' ? (
                                 <VendorDashboard />
                             ) : (
                                 <Navigate to="/" />
                             )
                         }
-                    />
+                    /> */}
 
-                    {/* CSR Dashboard */}
-                    <Route
-                        path="/csr"
-                        element={
-                            loggedInUser && loggedInUser.role === 'Customer Service Representative' ? (
-                                <CsrDashboard />
-                            ) : (
-                                <Navigate to="/" />
-                            )
-                        }
-                    />
+                <Route
+                    path="/vendor"
+                    element={
+                        <VendorDashboard />
+                    }
+                />
 
-                    {/* Order Management (for CSR and Admin) */}
-                    <Route
-                        path="/orders"
-                        element={
-                            loggedInUser &&
-                            (loggedInUser.role === 'Administrator' ||
-                                loggedInUser.role === 'Customer Service Representative') ? (
-                                <OrderManagement />
-                            ) : (
-                                <Navigate to="/" />
-                            )
-                        }
-                    />
+                {/* CSR Dashboard */}
+                <Route
+                    path="/csr"
+                    element={
+                        loggedUser && loggedUser.role === 'Customer Service Representative' ? (
+                            <CsrDashboard />
+                        ) : (
+                            <Navigate to="/" />
+                        )
+                    }
+                />
 
-                    {/* Inventory Management (for Vendors and Admin) */}
-                    <Route
-                        path="/inventory"
-                        element={
-                            loggedInUser &&
-                            (loggedInUser.role === 'Administrator' || loggedInUser.role === 'Vendor') ? (
-                                <InventoryManagement />
-                            ) : (
-                                <Navigate to="/" />
-                            )
-                        }
-                    />
+                {/* Order Management (for CSR and Admin) */}
+                <Route
+                    path="/orders"
+                    element={
+                        loggedUser &&
+                            (loggedUser.role === 'Administrator' ||
+                                loggedUser.role === 'Customer Service Representative') ? (
+                            <OrderManagement />
+                        ) : (
+                            <Navigate to="/" />
+                        )
+                    }
+                />
 
-                    {/* Vendor Management (for Admin) */}
-                    <Route
-                        path="/vendor-management"
-                        element={
-                            loggedInUser && loggedInUser.role === 'Administrator' ? (
-                                <VendorManagement />
-                            ) : (
-                                <Navigate to="/" />
-                            )
-                        }
-                    />
-                </Routes>
-            </div>
+                {/* Inventory Management (for Vendors and Admin) */}
+                <Route
+                    path="/inventory"
+                    element={
+                        loggedUser &&
+                            (loggedUser.role === 'Administrator' || loggedUser.role === 'Vendor') ? (
+                            <InventoryManagement />
+                        ) : (
+                            <Navigate to="/" />
+                        )
+                    }
+                />
+
+                {/* Vendor Management (for Admin) */}
+                <Route
+                    path="/vendor-management"
+                    element={
+                        loggedUser && loggedUser.role === 'Administrator' ? (
+                            <VendorManagement />
+                        ) : (
+                            <Navigate to="/" />
+                        )
+                    }
+                />
+            </Routes>
         </Router>
     );
 }

@@ -1,0 +1,13 @@
+.sidebar {
+    height: 100vh;
+    /* padding-right: 24px;
+    padding-left: 50px; */
+    background: #fff;
+    min-height: 100vh;
+  }
+
+.topics {
+  margin-top: 50px;
+  margin-left: 20px;
+}
+
